@@ -26,14 +26,13 @@
   },
   "scripts": {
     "clean": "node --eval \"import('node:fs').then(({rmSync}) => rmSync('dist', {recursive:true, force:true}))\"",
-    "build": "npm run clean && tsc -p tsconfig.json",
+    "build": "npm run clean && tsc -p tsconfig.json && node --eval \"import('node:fs').then(({chmodSync}) => chmodSync('dist/cli.js', 0o755))\"",
     "typecheck": "tsc -p tsconfig.test.json",
     "test": "tsx --test test/**/*.test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "smoke": "node dist/cli.js --version && node dist/cli.js --help",
     "check": "npm run format:check && npm run typecheck && npm test && npm run build && npm run smoke",
-    "prepare": "npm run build",
     "prepublishOnly": "npm run check"
   },
   "keywords": [

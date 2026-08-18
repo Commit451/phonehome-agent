@@ -24,4 +24,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Verify committed distribution is current
+        run: test -z "$(git status --porcelain --untracked-files=all -- dist)"
       - run: npm pack --dry-run
