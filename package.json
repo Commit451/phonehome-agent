@@ -1,0 +1,65 @@
+{
+  "name": "phone-home-cli",
+  "version": "0.1.0",
+  "description": "Privacy-preserving location CLI for PhoneHome agents",
+  "type": "module",
+  "bin": {
+    "phone-home": "./dist/cli.js",
+    "phone-home-cli": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "clean": "node --eval \"import('node:fs').then(({rmSync}) => rmSync('dist', {recursive:true, force:true}))\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "tsx --test test/**/*.test.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "smoke": "node dist/cli.js --version && node dist/cli.js --help",
+    "check": "npm run format:check && npm run typecheck && npm test && npm run build && npm run smoke",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run check"
+  },
+  "keywords": [
+    "agent",
+    "cli",
+    "geolocation",
+    "location",
+    "phonehome"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VeldtJumper/phone-home-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VeldtJumper/phone-home-cli/issues"
+  },
+  "homepage": "https://github.com/VeldtJumper/phone-home-cli#readme",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
