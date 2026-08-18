@@ -12,19 +12,20 @@ The CLI intentionally returns coordinates rather than choosing a maps, search, w
 
 ## Install
 
-The package is not published to npm yet. During development, install it from the repository:
+The package is not published to npm yet. During development, add it to the agent's workspace from the private repository and invoke it through npm:
 
 ```bash
-npm install --global github:VeldtJumper/phone-home-cli
+npm install github:VeldtJumper/phone-home-cli
+npx phone-home --version
 ```
 
-Once published, the intended command will be:
+Once published, the intended global install will be:
 
 ```bash
 npm install --global phone-home-cli
 ```
 
-Both `phone-home` and `phone-home-cli` invoke the same executable.
+Both `phone-home` and `phone-home-cli` invoke the same executable. Commands below use `phone-home`; prefix them with `npx` when using the workspace installation.
 
 ## Configure
 
