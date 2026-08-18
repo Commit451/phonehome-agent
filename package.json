@@ -33,6 +33,7 @@
     "format:check": "prettier --check .",
     "smoke": "node dist/cli.js --version && node dist/cli.js --help",
     "check": "npm run format:check && npm run typecheck && npm test && npm run build && npm run smoke",
+    "prepare": "node --eval \"import('node:fs').then(({accessSync}) => accessSync('dist/cli.js'))\"",
     "prepublishOnly": "npm run check"
   },
   "keywords": [
