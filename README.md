@@ -6,7 +6,7 @@ The CLI intentionally returns coordinates rather than choosing a maps, search, w
 
 ## Requirements
 
-- Node.js 20 or newer
+- Node.js 24 or newer
 - A version 2 agent setup bundle copied from the PhoneHome Android or iOS app
 - The paired phone must have location and notification permissions and an active network connection
 

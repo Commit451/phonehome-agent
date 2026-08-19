@@ -22,7 +22,7 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "clean": "node --eval \"import('node:fs').then(({rmSync}) => rmSync('dist', {recursive:true, force:true}))\"",
