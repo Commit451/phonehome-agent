@@ -1,4 +1,4 @@
-# phone-home-cli
+# @commit451/phonehome
 
 A TypeScript CLI, local MCP server, and library that let a trusted agent ask the PhoneHome app for the user's current location. The phone encrypts coordinates before uploading them; the PhoneHome server sees only an opaque AES-256-GCM envelope, and this package decrypts it locally.
 
@@ -12,20 +12,20 @@ The CLI and MCP server intentionally return coordinates rather than choosing a m
 
 ## Install
 
-The package is not published to npm yet. During development, add it to the agent's workspace from the private repository and invoke it through npm:
+Install the public package globally:
 
 ```bash
-npm install github:VeldtJumper/phone-home-cli
-npx phone-home --version
+npm install --global @commit451/phonehome
+phone-home --version
 ```
 
-Once published, the intended global install will be:
+Or run the CLI without a global installation:
 
 ```bash
-npm install --global phone-home-cli
+npx @commit451/phonehome --version
 ```
 
-Both `phone-home` and `phone-home-cli` invoke the CLI. `phone-home-mcp` runs the local stdio MCP server. Commands below use `phone-home`; prefix them with `npx` when using the workspace installation.
+During development, install directly from the private GitHub repository with `npm install github:Commit451/phonehome-agent`. The `phonehome`, `phone-home`, and `phone-home-cli` binaries invoke the CLI. `phone-home-mcp` runs the local stdio MCP server. Commands below use `phone-home`.
 
 ## Configure
 
@@ -177,7 +177,7 @@ is created.
 The npm package also exports the typed client:
 
 ```ts
-import { PhoneHomeClient, parseSetupBundle } from 'phone-home-cli';
+import { PhoneHomeClient, parseSetupBundle } from '@commit451/phonehome';
 
 const setup = parseSetupBundle(JSON.parse(process.env.PHONE_HOME_SETUP_BUNDLE!));
 const phoneHome = new PhoneHomeClient(setup);
@@ -187,7 +187,7 @@ const location = await phoneHome.locate({ timeoutMs: 60_000 });
 Code that embeds its own MCP transport can import the server factory from the dedicated subpath:
 
 ```ts
-import { createPhoneHomeMcpServer } from 'phone-home-cli/mcp';
+import { createPhoneHomeMcpServer } from '@commit451/phonehome/mcp';
 
 const server = createPhoneHomeMcpServer({ version: '0.2.0' });
 ```
@@ -210,6 +210,10 @@ npm pack --dry-run
 ```
 
 `npm run check` runs formatting, strict TypeScript checks, unit/integration tests (including a real MCP stdio client), a clean build, and CLI/MCP executable smoke tests.
+
+## Publishing
+
+Version tags matching `v*` trigger `.github/workflows/publish.yml`, which validates the tag, runs the complete check, verifies the committed distribution, inspects the npm package, publishes through npm trusted publishing, and creates the matching GitHub release. See [RELEASING.md](RELEASING.md) for one-time npm setup and release steps.
 
 ## License
 

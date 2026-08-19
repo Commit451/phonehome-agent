@@ -1,9 +1,10 @@
 {
-  "name": "phone-home-cli",
+  "name": "@commit451/phonehome",
   "version": "0.2.0",
   "description": "Privacy-preserving PhoneHome location CLI and MCP server",
   "type": "module",
   "bin": {
+    "phonehome": "./dist/cli.js",
     "phone-home": "./dist/cli.js",
     "phone-home-cli": "./dist/cli.js",
     "phone-home-mcp": "./dist/mcp.js"
@@ -51,16 +52,17 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/VeldtJumper/phone-home-cli.git"
+    "url": "git+https://github.com/Commit451/phonehome-agent.git"
   },
   "bugs": {
-    "url": "https://github.com/VeldtJumper/phone-home-cli/issues"
+    "url": "https://github.com/Commit451/phonehome-agent/issues"
   },
-  "homepage": "https://github.com/VeldtJumper/phone-home-cli#readme",
+  "homepage": "https://github.com/Commit451/phonehome-agent#readme",
+  "author": "Commit 451",
   "license": "MIT",
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": false
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

@@ -1,0 +1,53 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Ensure npm supports trusted publishing
+        run: npm install --global npm@latest
+
+      - name: Verify tag matches the package version
+        run: |
+          package_version="$(node --print "require('./package.json').version")"
+          test "${GITHUB_REF_NAME}" = "v${package_version}"
+
+      - run: npm ci
+      - run: npm run check
+
+      - name: Verify committed distribution is current
+        run: test -z "$(git status --porcelain --untracked-files=all -- dist)"
+
+      - run: npm pack --dry-run
+      - run: npm publish --access public
+
+      - name: Create or update GitHub Release
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release edit "${GITHUB_REF_NAME}" --notes "Automated release for ${GITHUB_REF_NAME}"
+          else
+            gh release create "${GITHUB_REF_NAME}" --generate-notes
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
