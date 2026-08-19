@@ -6,19 +6,13 @@ The GitHub source repository and npm package are public. Trusted GitHub Actions 
 
 ## One-time npm bootstrap
 
-The npm package does not exist yet, and npm only exposes trusted-publisher settings after the first package version exists. An npm maintainer for the `commit451` organization must bootstrap it once:
+The npm package does not exist yet, so its trusted-publisher settings are not available. Create a granular npm token with publish access to the `commit451` scope and store it as an encrypted repository secret:
 
 ```bash
-npm login
-npm whoami
-npm run check
-npm pack --dry-run
-npm publish --access public --provenance=false
+gh secret set NPM_TOKEN --repo Commit451/phonehome-agent
 ```
 
-This publishes the current package version as a public scoped package. The one-time local bootstrap disables provenance because provenance is generated only in supported cloud CI; subsequent GitHub Actions releases use provenance. The matching version tag can be pushed after bootstrap—the workflow detects the existing immutable npm version, skips republishing it, and still creates the GitHub release.
-
-Then open the package settings for `@commit451/phonehome` on npmjs.com and configure its trusted publisher with these exact, case-sensitive values:
+The first version tag uses that secret only for the initial publish. After `@commit451/phonehome` exists, open its settings on npmjs.com and configure its trusted publisher with these exact, case-sensitive values:
 
 | Setting              | Value             |
 | -------------------- | ----------------- |
