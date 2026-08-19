@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ApiError, PhoneHomeError } from './errors.js';
+import { ApiError, PairingRequiredError, PhoneHomeError } from './errors.js';
 import { decryptLocation, deriveEncryptionKeyCheck } from './crypto.js';
 import type {
   AgentAccountStatusResponse,
@@ -62,8 +62,15 @@ export class PhoneHomeClient {
     };
   }
 
+  async verifyPairing(): Promise<EncryptionCheckResponse> {
+    const response = await this.checkEncryption();
+    if (!response.matches) throw new PairingRequiredError();
+    return response;
+  }
+
   async createLocationRequest(requestId: string = randomUUID()): Promise<CreateLocationResponse> {
     const normalizedRequestId = validateRequestId(requestId);
+    await this.verifyPairing();
     const response = expectRecord(
       await this.#request(
         `/v1/accounts/${encodeURIComponent(this.#setup.accountId)}/location-requests`,
@@ -243,6 +250,7 @@ export class PhoneHomeClient {
         typeof record.message === 'string'
           ? record.message
           : `PhoneHome API request failed with HTTP ${String(response.status)}.`;
+      if (code === 'pairing_required') throw new PairingRequiredError(response.status);
       throw new ApiError(response.status, code, message);
     }
     return payload;

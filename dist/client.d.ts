@@ -8,6 +8,7 @@ export declare class PhoneHomeClient {
     constructor(setup: AgentSetupBundle, options?: PhoneHomeClientOptions);
     status(): Promise<AgentAccountStatusResponse>;
     checkEncryption(): Promise<EncryptionCheckResponse>;
+    verifyPairing(): Promise<EncryptionCheckResponse>;
     createLocationRequest(requestId?: string): Promise<CreateLocationResponse>;
     getLocationResult(requestId: string): Promise<LocationResultResponse>;
     decryptResult(result: LocationResultResponse): AgentLocation;

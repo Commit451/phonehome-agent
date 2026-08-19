@@ -53,6 +53,11 @@ phone-home check
 
 No command prints the API key or encryption phrase.
 
+When the account is activated on a new phone, PhoneHome rotates the agent pairing. The
+old configuration then returns a structured `pairing_required` error instructing the agent
+to ask the user for the new pairing code. Copy the new agent setup from **PhoneHome >
+Setup**, then run `phone-home setup` again to replace the local configuration.
+
 ## Get a location
 
 ```bash
@@ -75,7 +80,9 @@ Successful output is machine-readable JSON:
 }
 ```
 
-`source` is `fresh` when the phone obtained a new fix and `last_known` when it had to use a recent cached fix. Use `--compact` when a single-line JSON document is preferable.
+Current PhoneHome clients return `source: "fresh"` and fail rather than falling back to an
+OS last-known location. `last_known` remains accepted only for compatibility with older
+clients. Use `--compact` when a single-line JSON document is preferable.
 
 An agent answering “What are some good Mexican restaurants near me right now?” can:
 
@@ -126,6 +133,11 @@ An explicit `--config` path takes precedence over credential environment variabl
 ## Exit codes and errors
 
 All successful non-help commands write one JSON document to stdout. Errors write one JSON document to stderr and never include credentials.
+
+`pairing_required` includes `details.action: "request_new_pairing_code"` and a safe message
+the agent can relay to the user. It means the active phone or encryption phrase no longer
+matches this configuration; location requests are stopped before an undecryptable response
+is created.
 
 - `0`: success
 - `1`: invalid command or missing/invalid configuration

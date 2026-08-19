@@ -15,4 +15,7 @@ export declare class ApiError extends PhoneHomeError {
     readonly status: number;
     constructor(status: number, code: string, message: string);
 }
+export declare class PairingRequiredError extends PhoneHomeError {
+    constructor(status?: number);
+}
 //# sourceMappingURL=errors.d.ts.map

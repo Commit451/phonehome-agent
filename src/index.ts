@@ -5,7 +5,7 @@ export {
   deriveEncryptionKeyCheck,
   locationAdditionalAuthenticatedData,
 } from './crypto.js';
-export { ApiError, PhoneHomeError, UsageError } from './errors.js';
+export { ApiError, PairingRequiredError, PhoneHomeError, UsageError } from './errors.js';
 export type {
   AgentAccountStatusResponse,
   AgentLocation,

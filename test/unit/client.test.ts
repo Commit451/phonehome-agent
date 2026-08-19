@@ -4,7 +4,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import test from 'node:test';
 import { PhoneHomeClient } from '../../src/client.js';
 import { locationAdditionalAuthenticatedData } from '../../src/crypto.js';
-import { ApiError } from '../../src/errors.js';
+import { ApiError, PairingRequiredError } from '../../src/errors.js';
 import type { AgentSetupBundle, EncryptedEnvelope } from '../../src/types.js';
 
 const REQUEST_ID = '181cf811-13b2-402c-a863-32a2bd6e636a';
@@ -52,7 +52,7 @@ function envelope(accountId: string, requestId: string): EncryptedEnvelope {
       longitude: -93.625,
       accuracyMeters: null,
       capturedAtEpochMs: 1_700_000_000_000,
-      source: 'last_known',
+      source: 'fresh',
     }),
   );
   const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final(), cipher.getAuthTag()]);
@@ -78,6 +78,10 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
   let polls = 0;
   const server = await startServer((request, response) => {
     assert.equal(request.headers.authorization, `Bearer ${API_KEY}`);
+    if (request.method === 'POST' && request.url?.endsWith('/check')) {
+      json(response, 200, { accountId: 'firebase-user-one', matches: true });
+      return;
+    }
     if (request.method === 'POST' && request.url?.endsWith('/location-requests')) {
       json(response, 202, {
         requestId: REQUEST_ID,
@@ -118,7 +122,7 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
     accuracyMeters: null,
     capturedAtEpochMs: 1_700_000_000_000,
     capturedAt: '2023-11-14T22:13:20.000Z',
-    source: 'last_known',
+    source: 'fresh',
     receivedAtEpochMs: 1_700_000_000_100,
   });
 });
@@ -141,6 +145,53 @@ test('parses status and encryption-check responses', async (context) => {
     accountId: 'firebase-user-one',
     matches: true,
   });
+  assert.deepEqual(await client.verifyPairing(), {
+    accountId: 'firebase-user-one',
+    matches: true,
+  });
+});
+
+test('stops before requesting location when the encryption pairing is stale', async (context) => {
+  let requestedLocation = false;
+  const server = await startServer((request, response) => {
+    if (request.url?.endsWith('/check')) {
+      json(response, 200, { accountId: 'firebase-user-one', matches: false });
+      return;
+    }
+    requestedLocation = true;
+    json(response, 500, { code: 'unexpected_request', message: 'Unexpected request.' });
+  });
+  context.after(server.close);
+
+  await assert.rejects(
+    new PhoneHomeClient(setup(server.baseUrl)).createLocationRequest(REQUEST_ID),
+    (error: unknown) =>
+      error instanceof PairingRequiredError &&
+      error.code === 'pairing_required' &&
+      error.details?.action === 'request_new_pairing_code',
+  );
+  assert.equal(requestedLocation, false);
+});
+
+test('turns server pairing_required responses into actionable agent errors', async (context) => {
+  const server = await startServer((_request, response) => {
+    json(response, 409, {
+      code: 'pairing_required',
+      message: 'Pairing changed.',
+    });
+  });
+  context.after(server.close);
+
+  await assert.rejects(
+    new PhoneHomeClient(setup(server.baseUrl)).status(),
+    (error: unknown) =>
+      error instanceof PairingRequiredError &&
+      error.code === 'pairing_required' &&
+      error.details?.status === 409 &&
+      error.details?.action === 'request_new_pairing_code' &&
+      error.message.includes('Tell the user') &&
+      !error.message.includes(API_KEY),
+  );
 });
 
 test('surfaces structured API errors without credentials', async (context) => {

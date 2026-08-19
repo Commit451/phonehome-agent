@@ -36,3 +36,23 @@ export class ApiError extends PhoneHomeError {
     this.status = status;
   }
 }
+
+export class PairingRequiredError extends PhoneHomeError {
+  constructor(status?: number) {
+    super(
+      'pairing_required',
+      'This agent no longer matches the active PhoneHome device. Tell the user to open ' +
+        'PhoneHome > Setup, copy the new pairing code, and update this agent with `phone-home setup`.',
+      {
+        details: {
+          action: 'request_new_pairing_code',
+          userMessage:
+            'Open PhoneHome > Setup on the active phone and copy the new agent pairing code.',
+          setupCommand: 'phone-home setup',
+          ...(status === undefined ? {} : { status }),
+        },
+      },
+    );
+    this.name = 'PairingRequiredError';
+  }
+}

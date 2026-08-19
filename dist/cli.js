@@ -65,7 +65,7 @@ async function main() {
             return;
         case 'check':
             requireNoArguments(command, argumentsForCommand);
-            printJson(await client.checkEncryption(), global.compact);
+            printJson(await client.verifyPairing(), global.compact);
             return;
         case 'request': {
             const options = parseRequestOptions(argumentsForCommand);
@@ -77,6 +77,7 @@ async function main() {
             if (argumentsForCommand.length !== 1 || !requestId || requestId.startsWith('-')) {
                 throw new UsageError('result requires exactly one requestId.');
             }
+            await client.verifyPairing();
             const result = await client.getLocationResult(requestId);
             printJson(result.status === 'completed' ? client.decryptResult(result) : result, global.compact);
             return;
