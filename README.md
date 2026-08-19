@@ -25,7 +25,7 @@ Or run the CLI without a global installation:
 npx @commit451/phonehome --version
 ```
 
-During development, install directly from the private GitHub repository with `npm install github:Commit451/phonehome-agent`. The `phonehome`, `phone-home`, and `phone-home-cli` binaries invoke the CLI. `phone-home-mcp` runs the local stdio MCP server. Commands below use `phone-home`.
+During development, install directly from GitHub with `npm install github:Commit451/phonehome-agent`. The `phonehome`, `phone-home`, and `phone-home-cli` binaries invoke the CLI. `phone-home-mcp` runs the local stdio MCP server. Commands below use `phone-home`.
 
 ## Configure
 
@@ -189,7 +189,7 @@ Code that embeds its own MCP transport can import the server factory from the de
 ```ts
 import { createPhoneHomeMcpServer } from '@commit451/phonehome/mcp';
 
-const server = createPhoneHomeMcpServer({ version: '0.2.0' });
+const server = createPhoneHomeMcpServer({ version: '0.0.1' });
 ```
 
 ## Security model

@@ -1,0 +1,16 @@
+title = "PhoneHome secret scanning configuration"
+minVersion = "v8.25.0"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public deterministic PhoneHome API-key test vector"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = [
+  '''ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8''',
+  '''ZIQrtCQB-qrS6JtlDz07vKUNUiCTJURlQTzfn-vmLTI''',
+]
+paths = ['''^test/unit/.*\.test\.ts$''']

@@ -34,7 +34,7 @@ function run(arguments_: string[], input?: string) {
 test('prints version and command help', () => {
   const version = run(['--version']);
   assert.equal(version.status, 0);
-  assert.equal(version.stdout.trim(), '0.2.0');
+  assert.equal(version.stdout.trim(), '0.0.1');
 
   const help = run(['--help']);
   assert.equal(help.status, 0);

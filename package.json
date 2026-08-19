@@ -1,13 +1,13 @@
 {
   "name": "@commit451/phonehome",
-  "version": "0.2.0",
+  "version": "0.0.1",
   "description": "Privacy-preserving PhoneHome location CLI and MCP server",
   "type": "module",
   "bin": {
-    "phonehome": "./dist/cli.js",
-    "phone-home": "./dist/cli.js",
-    "phone-home-cli": "./dist/cli.js",
-    "phone-home-mcp": "./dist/mcp.js"
+    "phonehome": "dist/cli.js",
+    "phone-home": "dist/cli.js",
+    "phone-home-cli": "dist/cli.js",
+    "phone-home-mcp": "dist/mcp.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -62,7 +62,7 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public",
-    "provenance": false
+    "provenance": true
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
