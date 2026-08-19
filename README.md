@@ -1,8 +1,8 @@
 # phone-home-cli
 
-A TypeScript CLI and library that lets a trusted agent ask the PhoneHome app for the user's current location. The phone encrypts coordinates before uploading them; the PhoneHome server sees only an opaque AES-256-GCM envelope, and this CLI decrypts it locally.
+A TypeScript CLI, local MCP server, and library that let a trusted agent ask the PhoneHome app for the user's current location. The phone encrypts coordinates before uploading them; the PhoneHome server sees only an opaque AES-256-GCM envelope, and this package decrypts it locally.
 
-The CLI intentionally returns coordinates rather than choosing a maps, search, weather, restaurant, or travel provider. An agent can combine the JSON output with its preferred web tool or MCP server.
+The CLI and MCP server intentionally return coordinates rather than choosing a maps, search, weather, restaurant, or travel provider. An agent can combine the location with its preferred provider without disclosing PhoneHome credentials to that provider.
 
 ## Requirements
 
@@ -25,7 +25,7 @@ Once published, the intended global install will be:
 npm install --global phone-home-cli
 ```
 
-Both `phone-home` and `phone-home-cli` invoke the same executable. Commands below use `phone-home`; prefix them with `npx` when using the workspace installation.
+Both `phone-home` and `phone-home-cli` invoke the CLI. `phone-home-mcp` runs the local stdio MCP server. Commands below use `phone-home`; prefix them with `npx` when using the workspace installation.
 
 ## Configure
 
@@ -90,6 +90,34 @@ An agent answering â€œWhat are some good Mexican restaurants near me right now?â
 2. pass `latitude` and `longitude` to a local-search or maps tool/MCP;
 3. use the current time and opening-hours data from that provider; and
 4. present nearby open options without exposing PhoneHome credentials to the search provider.
+
+## MCP server
+
+`phone-home-mcp` exposes PhoneHome directly to MCP clients over local stdio. It uses the same protected config file or `PHONE_HOME_*` environment variables as the CLI and never sends setup credentials through MCP. Configure the package once with `phone-home setup`, then add this server to the MCP client's configuration:
+
+```json
+{
+  "mcpServers": {
+    "phone-home": {
+      "command": "phone-home-mcp"
+    }
+  }
+}
+```
+
+For a workspace Git installation, set `command` to the absolute path of `node_modules/.bin/phone-home-mcp`. To use a non-default config file, add `"args": ["--config", "/secure/path/config.json"]`.
+
+The MCP server provides five tools:
+
+| Tool                             | Purpose                                                   |
+| -------------------------------- | --------------------------------------------------------- |
+| `phone_home_get_location`        | Request, wait for, decrypt, and return a current location |
+| `phone_home_request_location`    | Start a request without waiting                           |
+| `phone_home_get_location_result` | Poll a split request and decrypt it when complete         |
+| `phone_home_status`              | Check whether the paired phone is registered              |
+| `phone_home_check_pairing`       | Verify that the agent and active phone share the same key |
+
+Use `phone_home_get_location` for normal requests. MCP clients with short tool-call limits can use `phone_home_request_location`, save its `requestId`, and poll `phone_home_get_location_result`. The server deliberately does not expose setup as a tool, so pairing codes and credentials cannot be submitted through model tool arguments.
 
 ## Commands
 
@@ -156,6 +184,14 @@ const phoneHome = new PhoneHomeClient(setup);
 const location = await phoneHome.locate({ timeoutMs: 60_000 });
 ```
 
+Code that embeds its own MCP transport can import the server factory from the dedicated subpath:
+
+```ts
+import { createPhoneHomeMcpServer } from 'phone-home-cli/mcp';
+
+const server = createPhoneHomeMcpServer({ version: '0.2.0' });
+```
+
 ## Security model
 
 - Treat the setup bundle and config file as secrets. They contain both the agent API key and the location encryption key.
@@ -173,7 +209,7 @@ npm run check
 npm pack --dry-run
 ```
 
-`npm run check` runs formatting, strict TypeScript checks, unit/integration tests, a clean build, and CLI smoke tests.
+`npm run check` runs formatting, strict TypeScript checks, unit/integration tests (including a real MCP stdio client), a clean build, and CLI/MCP executable smoke tests.
 
 ## License
 
