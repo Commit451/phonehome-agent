@@ -50,7 +50,7 @@ function envelope(accountId: string, requestId: string): EncryptedEnvelope {
       version: 1,
       latitude: 41.5868,
       longitude: -93.625,
-      accuracyMeters: null,
+      accuracyMeters: 12.5,
       capturedAtEpochMs: 1_700_000_000_000,
       source: 'fresh',
     }),
@@ -79,13 +79,12 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
   const server = await startServer((request, response) => {
     assert.equal(request.headers.authorization, `Bearer ${API_KEY}`);
     if (request.method === 'POST' && request.url?.endsWith('/check')) {
-      json(response, 200, { accountId: 'firebase-user-one', matches: true });
+      json(response, 200, { matches: true });
       return;
     }
     if (request.method === 'POST' && request.url?.endsWith('/location-requests')) {
       json(response, 202, {
         requestId: REQUEST_ID,
-        accountId: 'firebase-user-one',
         status: 'push_sent',
         expiresAtEpochMs: Date.now() + 10_000,
       });
@@ -96,10 +95,7 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
       const complete = polls > 1;
       json(response, 200, {
         requestId: REQUEST_ID,
-        accountId: 'firebase-user-one',
         status: complete ? 'completed' : 'push_sent',
-        createdAtEpochMs: Date.now() - 100,
-        expiresAtEpochMs: Date.now() + 10_000,
         receivedAtEpochMs: complete ? 1_700_000_000_100 : null,
         encryptedLocation: complete ? envelope('firebase-user-one', REQUEST_ID) : null,
       });
@@ -115,14 +111,12 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
     pollIntervalMs: 5,
   });
   assert.deepEqual(location, {
-    accountId: 'firebase-user-one',
     requestId: REQUEST_ID,
     latitude: 41.5868,
     longitude: -93.625,
-    accuracyMeters: null,
+    accuracyMeters: 12.5,
     capturedAtEpochMs: 1_700_000_000_000,
     capturedAt: '2023-11-14T22:13:20.000Z',
-    source: 'fresh',
     receivedAtEpochMs: 1_700_000_000_100,
   });
 });
@@ -130,23 +124,20 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
 test('parses status and encryption-check responses', async (context) => {
   const server = await startServer((request, response) => {
     if (request.method === 'GET') {
-      json(response, 200, { accountId: 'firebase-user-one', deviceRegistered: true });
+      json(response, 200, { deviceRegistered: true });
     } else {
-      json(response, 200, { accountId: 'firebase-user-one', matches: true });
+      json(response, 200, { matches: true });
     }
   });
   context.after(server.close);
   const client = new PhoneHomeClient(setup(server.baseUrl));
   assert.deepEqual(await client.status(), {
-    accountId: 'firebase-user-one',
     deviceRegistered: true,
   });
   assert.deepEqual(await client.checkEncryption(), {
-    accountId: 'firebase-user-one',
     matches: true,
   });
   assert.deepEqual(await client.verifyPairing(), {
-    accountId: 'firebase-user-one',
     matches: true,
   });
 });
@@ -155,7 +146,7 @@ test('stops before requesting location when the encryption pairing is stale', as
   let requestedLocation = false;
   const server = await startServer((request, response) => {
     if (request.url?.endsWith('/check')) {
-      json(response, 200, { accountId: 'firebase-user-one', matches: false });
+      json(response, 200, { matches: false });
       return;
     }
     requestedLocation = true;

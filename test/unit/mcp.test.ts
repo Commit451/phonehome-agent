@@ -12,33 +12,27 @@ import type { AgentLocation, LocationResultResponse } from '../../src/types.js';
 const PROJECT_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const REQUEST_ID = '181cf811-13b2-402c-a863-32a2bd6e636a';
 const LOCATION: AgentLocation = {
-  accountId: 'firebase-user-one',
   requestId: REQUEST_ID,
   latitude: 41.5868,
   longitude: -93.625,
   accuracyMeters: 12.5,
   capturedAtEpochMs: 1_700_000_000_000,
   capturedAt: '2023-11-14T22:13:20.000Z',
-  source: 'fresh',
   receivedAtEpochMs: 1_700_000_000_100,
 };
 
 function fakeClient(overrides: Partial<PhoneHomeMcpClient> = {}): PhoneHomeMcpClient {
   return {
-    status: async () => ({ accountId: 'firebase-user-one', deviceRegistered: true }),
-    verifyPairing: async () => ({ accountId: 'firebase-user-one', matches: true }),
+    status: async () => ({ deviceRegistered: true }),
+    verifyPairing: async () => ({ matches: true }),
     createLocationRequest: async (requestId = REQUEST_ID) => ({
       requestId,
-      accountId: 'firebase-user-one',
       status: 'push_sent',
       expiresAtEpochMs: 1_700_000_060_000,
     }),
     getLocationResult: async (requestId) => ({
       requestId,
-      accountId: 'firebase-user-one',
       status: 'push_sent',
-      createdAtEpochMs: 1_700_000_000_000,
-      expiresAtEpochMs: 1_700_000_060_000,
       receivedAtEpochMs: null,
       encryptedLocation: null,
     }),
@@ -113,10 +107,7 @@ test('returns structured location output and forwards MCP timing options', async
 test('split result tool reports pending state without exposing encrypted payloads', async (context) => {
   const pending: LocationResultResponse = {
     requestId: REQUEST_ID,
-    accountId: 'firebase-user-one',
     status: 'push_sent',
-    createdAtEpochMs: 1_700_000_000_000,
-    expiresAtEpochMs: 1_700_000_060_000,
     receivedAtEpochMs: null,
     encryptedLocation: null,
   };
@@ -132,10 +123,7 @@ test('split result tool reports pending state without exposing encrypted payload
 
   assert.deepEqual(result.structuredContent, {
     requestId: REQUEST_ID,
-    accountId: 'firebase-user-one',
     status: 'push_sent',
-    createdAtEpochMs: 1_700_000_000_000,
-    expiresAtEpochMs: 1_700_000_060_000,
     receivedAtEpochMs: null,
     location: null,
   });

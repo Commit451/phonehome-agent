@@ -7,12 +7,10 @@ export interface AgentSetupBundle {
 }
 
 export interface AgentAccountStatusResponse {
-  accountId: string;
   deviceRegistered: boolean;
 }
 
 export interface EncryptionCheckResponse {
-  accountId: string;
   matches: boolean;
 }
 
@@ -21,7 +19,6 @@ export type LocationRequestStatus =
 
 export interface CreateLocationResponse {
   requestId: string;
-  accountId: string;
   status: LocationRequestStatus;
   expiresAtEpochMs: number;
 }
@@ -35,10 +32,7 @@ export interface EncryptedEnvelope {
 
 export interface LocationResultResponse {
   requestId: string;
-  accountId: string;
   status: LocationRequestStatus;
-  createdAtEpochMs: number;
-  expiresAtEpochMs: number;
   receivedAtEpochMs: number | null;
   encryptedLocation: EncryptedEnvelope | null;
 }
@@ -52,8 +46,7 @@ export interface DecryptedLocation {
   source: 'fresh' | 'last_known';
 }
 
-export interface AgentLocation extends Omit<DecryptedLocation, 'version'> {
-  accountId: string;
+export interface AgentLocation extends Omit<DecryptedLocation, 'version' | 'source'> {
   requestId: string;
   capturedAt: string;
   receivedAtEpochMs: number | null;

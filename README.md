@@ -1,13 +1,11 @@
-# @commit451/phonehome
+# phonehome
 
-A TypeScript CLI, local MCP server, and library that let a trusted agent ask the PhoneHome app for the user's current location. The phone encrypts coordinates before uploading them; the PhoneHome server sees only an opaque AES-256-GCM envelope, and this package decrypts it locally.
-
-The CLI and MCP server intentionally return coordinates rather than choosing a maps, search, weather, restaurant, or travel provider. An agent can combine the location with its preferred provider without disclosing PhoneHome credentials to that provider.
+A CLI and MCP that allows an agent to get your realtime location on demand, end to end encrypted.
 
 ## Requirements
 
 - Node.js 24 or newer
-- A version 2 agent setup bundle copied from the PhoneHome Android or iOS app
+- Installation of the PhoneHome app for Android or iOS
 - The paired phone must have location and notification permissions and an active network connection
 
 ## Install
@@ -15,34 +13,12 @@ The CLI and MCP server intentionally return coordinates rather than choosing a m
 Install the public package globally:
 
 ```bash
-npm install --global @commit451/phonehome
-phone-home --version
+npm install -g @commit451/phonehome
 ```
-
-Or run the CLI without a global installation:
-
-```bash
-npx @commit451/phonehome --version
-```
-
-During development, install directly from GitHub with `npm install github:Commit451/phonehome-agent`. The `phonehome`, `phone-home`, and `phone-home-cli` binaries invoke the CLI. `phone-home-mcp` runs the local stdio MCP server. Commands below use `phone-home`.
 
 ## Configure
 
-Copy the hidden setup bundle from the PhoneHome app, then pipe it to the CLI so the secrets do not appear in shell history:
-
-```bash
-pbpaste | phone-home setup
-```
-
-Linux users can use their clipboard tool or a protected file:
-
-```bash
-wl-paste | phone-home setup
-phone-home setup /secure/path/phone-home-setup.json
-```
-
-The CLI validates the complete bundle and stores it at `~/.config/phone-home/config.json` with mode `0600`; its parent directory is mode `0700`. Override the location with `--config` or `PHONE_HOME_CONFIG`.
+Your human has instructions on their PhoneHome app that they can paste to you the agent, which includes the needed API key, encryption phrase, etc. When it is pasted to you, you should keep these values secret and not expose them to anyone else.
 
 Confirm that the phone registration and encryption phrase are synchronized:
 
@@ -68,28 +44,22 @@ Successful output is machine-readable JSON:
 
 ```json
 {
-  "accountId": "firebase-user-id",
   "requestId": "181cf811-13b2-402c-a863-32a2bd6e636a",
   "latitude": 41.5868,
   "longitude": -93.625,
   "accuracyMeters": 12.5,
   "capturedAtEpochMs": 1700000000000,
   "capturedAt": "2023-11-14T22:13:20.000Z",
-  "source": "fresh",
   "receivedAtEpochMs": 1700000001000
 }
 ```
-
-Current PhoneHome clients return `source: "fresh"` and fail rather than falling back to an
-OS last-known location. `last_known` remains accepted only for compatibility with older
-clients. Use `--compact` when a single-line JSON document is preferable.
 
 An agent answering “What are some good Mexican restaurants near me right now?” can:
 
 1. run `phone-home location`;
 2. pass `latitude` and `longitude` to a local-search or maps tool/MCP;
 3. use the current time and opening-hours data from that provider; and
-4. present nearby open options without exposing PhoneHome credentials to the search provider.
+4. present nearby open options without the user having to explain where they are
 
 ## MCP server
 
@@ -105,7 +75,7 @@ An agent answering “What are some good Mexican restaurants near me right now?�
 }
 ```
 
-For a workspace Git installation, set `command` to the absolute path of `node_modules/.bin/phone-home-mcp`. To use a non-default config file, add `"args": ["--config", "/secure/path/config.json"]`.
+To use a non-default config file, add `"args": ["--config", "/secure/path/config.json"]`.
 
 The MCP server provides five tools:
 
@@ -200,20 +170,6 @@ const server = createPhoneHomeMcpServer({ version: '0.0.2' });
 - Location payloads use AES-256-GCM with a 12-byte nonce and request-bound AAD: `phonehome/location/v1\n{accountId}\n{requestId}`.
 - Decrypted payloads are schema-checked, including coordinate ranges, before being returned.
 - The API key, phrase, authorization header, and setup bundle are never logged.
-
-## Development
-
-```bash
-npm install
-npm run check
-npm pack --dry-run
-```
-
-`npm run check` runs formatting, strict TypeScript checks, unit/integration tests (including a real MCP stdio client), a clean build, and CLI/MCP executable smoke tests.
-
-## Publishing
-
-Version tags matching `v*` trigger `.github/workflows/publish.yml`, which validates the tag, runs the complete check, verifies the committed distribution, inspects the npm package, publishes through npm trusted publishing, and creates the matching GitHub release. See [RELEASING.md](RELEASING.md) for one-time npm setup and release steps.
 
 ## License
 

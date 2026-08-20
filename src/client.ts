@@ -42,8 +42,7 @@ export class PhoneHomeClient {
       await this.#request(`/v1/accounts/${encodeURIComponent(this.#setup.accountId)}`),
       'Account status',
     );
-    const accountId = this.#matchingAccountId(response);
-    return { accountId, deviceRegistered: expectBoolean(response, 'deviceRegistered') };
+    return { deviceRegistered: expectBoolean(response, 'deviceRegistered') };
   }
 
   async checkEncryption(): Promise<EncryptionCheckResponse> {
@@ -57,7 +56,6 @@ export class PhoneHomeClient {
       'Encryption check',
     );
     return {
-      accountId: this.#matchingAccountId(response),
       matches: expectBoolean(response, 'matches'),
     };
   }
@@ -87,7 +85,6 @@ export class PhoneHomeClient {
     }
     return {
       requestId: returnedRequestId,
-      accountId: this.#matchingAccountId(response),
       status: parseLocationStatus(response.status),
       expiresAtEpochMs: expectEpochMs(response, 'expiresAtEpochMs'),
     };
@@ -111,10 +108,7 @@ export class PhoneHomeClient {
         : parseEnvelope(response.encryptedLocation);
     return {
       requestId: returnedRequestId,
-      accountId: this.#matchingAccountId(response),
       status: parseLocationStatus(response.status),
-      createdAtEpochMs: expectEpochMs(response, 'createdAtEpochMs'),
-      expiresAtEpochMs: expectEpochMs(response, 'expiresAtEpochMs'),
       receivedAtEpochMs: expectNullableEpochMs(response, 'receivedAtEpochMs'),
       encryptedLocation,
     };
@@ -129,19 +123,17 @@ export class PhoneHomeClient {
     }
     const location = decryptLocation(
       this.#setup.encryptionPhrase,
-      result.accountId,
+      this.#setup.accountId,
       result.requestId,
       result.encryptedLocation,
     );
     return {
-      accountId: result.accountId,
       requestId: result.requestId,
       latitude: location.latitude,
       longitude: location.longitude,
       accuracyMeters: location.accuracyMeters,
       capturedAtEpochMs: location.capturedAtEpochMs,
       capturedAt: new Date(location.capturedAtEpochMs).toISOString(),
-      source: location.source,
       receivedAtEpochMs: result.receivedAtEpochMs,
     };
   }
@@ -191,14 +183,6 @@ export class PhoneHomeClient {
       }
       await delay(Math.min(pollIntervalMs, remainingMs));
     }
-  }
-
-  #matchingAccountId(response: Record<string, unknown>): string {
-    const accountId = expectString(response, 'accountId');
-    if (accountId !== this.#setup.accountId) {
-      throw new PhoneHomeError('invalid_response', 'Server returned a different accountId.');
-    }
-    return accountId;
   }
 
   async #request(path: string, init: RequestInit = {}): Promise<unknown> {

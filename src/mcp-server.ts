@@ -14,18 +14,15 @@ import type {
 } from './types.js';
 
 const requestIdSchema = z.uuid();
-const accountIdSchema = z.string().min(1);
 const epochSchema = z.number().int().nonnegative();
 const locationStatusSchema = z.enum(['queued', 'push_sent', 'completed', 'push_failed', 'expired']);
 const locationOutputSchema = {
-  accountId: accountIdSchema,
   requestId: requestIdSchema,
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   accuracyMeters: z.number().nonnegative().nullable(),
   capturedAtEpochMs: epochSchema,
   capturedAt: z.iso.datetime(),
-  source: z.enum(['fresh', 'last_known']),
   receivedAtEpochMs: epochSchema.nullable(),
 };
 
@@ -65,7 +62,6 @@ export function createPhoneHomeMcpServer(options: PhoneHomeMcpServerOptions): Mc
       title: 'PhoneHome status',
       description: 'Check whether the paired phone is registered with PhoneHome.',
       outputSchema: {
-        accountId: accountIdSchema,
         deviceRegistered: z.boolean(),
       },
       annotations: readOnlyAnnotations,
@@ -80,7 +76,6 @@ export function createPhoneHomeMcpServer(options: PhoneHomeMcpServerOptions): Mc
       description:
         'Verify that this agent and the active phone share the same location-encryption key.',
       outputSchema: {
-        accountId: accountIdSchema,
         matches: z.literal(true),
       },
       annotations: readOnlyAnnotations,
@@ -136,7 +131,6 @@ export function createPhoneHomeMcpServer(options: PhoneHomeMcpServerOptions): Mc
       },
       outputSchema: {
         requestId: requestIdSchema,
-        accountId: accountIdSchema,
         status: locationStatusSchema,
         expiresAtEpochMs: epochSchema,
       },
@@ -156,10 +150,7 @@ export function createPhoneHomeMcpServer(options: PhoneHomeMcpServerOptions): Mc
       },
       outputSchema: {
         requestId: requestIdSchema,
-        accountId: accountIdSchema,
         status: locationStatusSchema,
-        createdAtEpochMs: epochSchema,
-        expiresAtEpochMs: epochSchema,
         receivedAtEpochMs: epochSchema.nullable(),
         location: z.object(locationOutputSchema).nullable(),
       },
@@ -172,10 +163,7 @@ export function createPhoneHomeMcpServer(options: PhoneHomeMcpServerOptions): Mc
         const result = await client.getLocationResult(requestId);
         return {
           requestId: result.requestId,
-          accountId: result.accountId,
           status: result.status,
-          createdAtEpochMs: result.createdAtEpochMs,
-          expiresAtEpochMs: result.expiresAtEpochMs,
           receivedAtEpochMs: result.receivedAtEpochMs,
           location: result.status === 'completed' ? client.decryptResult(result) : null,
         };
