@@ -44,7 +44,7 @@ function fakeClient(overrides: Partial<PhoneHomeMcpClient> = {}): PhoneHomeMcpCl
 
 async function connectInMemory(clientFactory: () => Promise<PhoneHomeMcpClient>) {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-  const server = createPhoneHomeMcpServer({ version: '0.0.3', clientFactory });
+  const server = createPhoneHomeMcpServer({ version: '0.0.4', clientFactory });
   const client = new Client({ name: 'phone-home-test', version: '1.0.0' });
   await server.connect(serverTransport);
   await client.connect(clientTransport);
@@ -187,7 +187,7 @@ test('the MCP executable exposes help and version without starting stdio', () =>
     encoding: 'utf8',
   });
   assert.equal(version.status, 0, version.stderr);
-  assert.equal(version.stdout.trim(), '0.0.3');
+  assert.equal(version.stdout.trim(), '0.0.4');
 
   const help = spawnSync(process.execPath, ['--import', 'tsx', 'src/mcp.ts', '--help'], {
     cwd: PROJECT_ROOT,

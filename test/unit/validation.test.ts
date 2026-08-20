@@ -4,31 +4,21 @@ import { PhoneHomeError } from '../../src/errors.js';
 import { parseSetupBundle, validateRequestId } from '../../src/validation.js';
 
 const VALID_BUNDLE = {
-  version: 2,
-  apiBaseUrl: 'https://phonehome.example/',
-  accountId: 'firebase-user-one',
   apiKey: 'ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8',
   encryptionPhrase: 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8',
 };
 
-test('normalizes and validates a setup bundle', () => {
-  assert.deepEqual(parseSetupBundle(VALID_BUNDLE), {
-    ...VALID_BUNDLE,
-    apiBaseUrl: 'https://phonehome.example',
-  });
-});
-
-test('allows loopback HTTP for local protocol testing', () => {
-  assert.equal(
-    parseSetupBundle({ ...VALID_BUNDLE, apiBaseUrl: 'http://127.0.0.1:18080' }).apiBaseUrl,
-    'http://127.0.0.1:18080',
-  );
-});
-
-test('rejects plaintext credentials sent to a remote HTTP endpoint', () => {
-  assert.throws(
-    () => parseSetupBundle({ ...VALID_BUNDLE, apiBaseUrl: 'http://phonehome.example' }),
-    (error: unknown) => error instanceof PhoneHomeError && error.code === 'invalid_config',
+test('validates only the two setup secrets and discards metadata', () => {
+  assert.deepEqual(
+    parseSetupBundle({
+      version: 2,
+      type: 'phonehome-agent-setup',
+      apiBaseUrl: 'https://untrusted.example',
+      accountId: 'untrusted-account',
+      purpose: 'Agent-facing context',
+      ...VALID_BUNDLE,
+    }),
+    VALID_BUNDLE,
   );
 });
 

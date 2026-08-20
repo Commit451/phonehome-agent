@@ -114,14 +114,12 @@ The standalone `request` and `result` commands support agents whose tool calls h
 For ephemeral agent containers, avoid a config file by providing either the full bundle:
 
 ```bash
-export PHONE_HOME_SETUP_BUNDLE='{"version":2,...}'
+export PHONE_HOME_SETUP_BUNDLE='{"apiKey":"...","encryptionPhrase":"..."}'
 ```
 
-or all four fields:
+or both credential fields:
 
 ```bash
-export PHONE_HOME_API_BASE_URL='https://phonehome.example'
-export PHONE_HOME_ACCOUNT_ID='firebase-user-id'
 export PHONE_HOME_API_KEY='...'
 export PHONE_HOME_ENCRYPTION_PHRASE='...'
 ```
@@ -159,15 +157,15 @@ Code that embeds its own MCP transport can import the server factory from the de
 ```ts
 import { createPhoneHomeMcpServer } from '@commit451/phonehome/mcp';
 
-const server = createPhoneHomeMcpServer({ version: '0.0.3' });
+const server = createPhoneHomeMcpServer({ version: '0.0.4' });
 ```
 
 ## Security model
 
 - Treat the setup bundle and config file as secrets. They contain both the agent API key and the location encryption key.
-- API credentials are accepted only over HTTPS, except loopback HTTP for local protocol tests.
+- The CLI always sends API credentials to PhoneHome's compiled-in HTTPS API origin.
 - Encryption synchronization uses `SHA-256("phonehome/key-check/v1\\0" || key)`; the raw encryption phrase is never sent to the server.
-- Location payloads use AES-256-GCM with a 12-byte nonce and request-bound AAD: `phonehome/location/v1\n{accountId}\n{requestId}`.
+- Location payloads use AES-256-GCM with a 12-byte nonce and request-bound AAD: `phonehome/location/v1\n{requestId}`.
 - Decrypted payloads are schema-checked, including coordinate ranges, before being returned.
 - The API key, phrase, authorization header, and setup bundle are never logged.
 

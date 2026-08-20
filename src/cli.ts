@@ -40,8 +40,6 @@ async function main(): Promise<void> {
       {
         configured: true,
         configPath,
-        apiBaseUrl: bundle.apiBaseUrl,
-        accountId: bundle.accountId,
       },
       global.compact,
     );
@@ -71,9 +69,6 @@ async function main(): Promise<void> {
         {
           source: loaded.source,
           configPath: loaded.configPath,
-          version: loaded.bundle.version,
-          apiBaseUrl: loaded.bundle.apiBaseUrl,
-          accountId: loaded.bundle.accountId,
         },
         global.compact,
       );
@@ -266,10 +261,10 @@ Global options:
   -v, --version     Show version
 
 Configuration:
-  Pipe the version 2 setup bundle copied from the PhoneHome app to "phone-home setup".
-  Credentials can instead come from PHONE_HOME_SETUP_BUNDLE or all four of:
-  PHONE_HOME_API_BASE_URL, PHONE_HOME_ACCOUNT_ID, PHONE_HOME_API_KEY, and
-  PHONE_HOME_ENCRYPTION_PHRASE. PHONE_HOME_CONFIG changes the default file path.
+  Pipe the setup bundle copied from the PhoneHome app to "phone-home setup".
+  Credentials can instead come from PHONE_HOME_SETUP_BUNDLE or both
+  PHONE_HOME_API_KEY and PHONE_HOME_ENCRYPTION_PHRASE.
+  PHONE_HOME_CONFIG changes the default file path.
 
 Exit codes:
   0 success, 1 usage/configuration, 2 API/runtime failure, 3 location pending/timeout

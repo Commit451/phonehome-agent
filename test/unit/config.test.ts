@@ -7,9 +7,6 @@ import { loadConfig, saveConfig } from '../../src/config.js';
 import type { AgentSetupBundle } from '../../src/types.js';
 
 const BUNDLE: AgentSetupBundle = {
-  version: 2,
-  apiBaseUrl: 'https://phonehome.example',
-  accountId: 'firebase-user-one',
   apiKey: 'ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8',
   encryptionPhrase: 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8',
 };
@@ -47,10 +44,8 @@ test('loads a complete setup bundle directly from the environment', async () => 
   assert.deepEqual(loaded, { bundle: BUNDLE, source: 'environment', configPath: null });
 });
 
-test('loads the four environment fields as an ephemeral bundle', async () => {
+test('loads the two environment credentials as an ephemeral bundle', async () => {
   const loaded = await loadConfig(undefined, {
-    PHONE_HOME_API_BASE_URL: BUNDLE.apiBaseUrl,
-    PHONE_HOME_ACCOUNT_ID: BUNDLE.accountId,
     PHONE_HOME_API_KEY: BUNDLE.apiKey,
     PHONE_HOME_ENCRYPTION_PHRASE: BUNDLE.encryptionPhrase,
   });

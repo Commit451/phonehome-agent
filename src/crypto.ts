@@ -15,13 +15,12 @@ export function deriveEncryptionKeyCheck(encryptionPhrase: string): string {
   }
 }
 
-export function locationAdditionalAuthenticatedData(accountId: string, requestId: string): Buffer {
-  return Buffer.from(`${LOCATION_AAD_PREFIX}\n${accountId}\n${requestId}`, 'utf8');
+export function locationAdditionalAuthenticatedData(requestId: string): Buffer {
+  return Buffer.from(`${LOCATION_AAD_PREFIX}\n${requestId}`, 'utf8');
 }
 
 export function decryptLocation(
   encryptionPhrase: string,
-  accountId: string,
   requestId: string,
   rawEnvelope: EncryptedEnvelope,
 ): DecryptedLocation {
@@ -31,7 +30,7 @@ export function decryptLocation(
   const combined = Buffer.from(envelope.ciphertext, 'base64url');
   const authenticationTag = combined.subarray(combined.length - 16);
   const ciphertext = combined.subarray(0, combined.length - 16);
-  const aad = locationAdditionalAuthenticatedData(accountId, requestId);
+  const aad = locationAdditionalAuthenticatedData(requestId);
 
   let plaintext: Buffer | undefined;
   try {

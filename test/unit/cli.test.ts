@@ -8,9 +8,6 @@ import test from 'node:test';
 
 const PROJECT_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const BUNDLE = {
-  version: 2,
-  apiBaseUrl: 'https://phonehome.example',
-  accountId: 'firebase-user-one',
   apiKey: 'ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8',
   encryptionPhrase: 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8',
 };
@@ -23,8 +20,6 @@ function run(arguments_: string[], input?: string) {
     env: {
       ...process.env,
       PHONE_HOME_SETUP_BUNDLE: '',
-      PHONE_HOME_API_BASE_URL: '',
-      PHONE_HOME_ACCOUNT_ID: '',
       PHONE_HOME_API_KEY: '',
       PHONE_HOME_ENCRYPTION_PHRASE: '',
     },
@@ -34,7 +29,7 @@ function run(arguments_: string[], input?: string) {
 test('prints version and command help', () => {
   const version = run(['--version']);
   assert.equal(version.status, 0);
-  assert.equal(version.stdout.trim(), '0.0.3');
+  assert.equal(version.stdout.trim(), '0.0.4');
 
   const help = run(['--help']);
   assert.equal(help.status, 0);
@@ -49,14 +44,14 @@ test('setup reads stdin, protects secrets, and config output stays sanitized', a
 
   const configured = run(['setup', '--config', configPath], JSON.stringify(BUNDLE));
   assert.equal(configured.status, 0, configured.stderr);
-  assert.equal(JSON.parse(configured.stdout).configured, true);
-  assert.equal(JSON.parse(await readFile(configPath, 'utf8')).apiKey, BUNDLE.apiKey);
+  assert.deepEqual(JSON.parse(configured.stdout), { configured: true, configPath });
+  assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), BUNDLE);
   assert.ok(!configured.stdout.includes(BUNDLE.apiKey));
   assert.ok(!configured.stdout.includes(BUNDLE.encryptionPhrase));
 
   const shown = run(['config', '--config', configPath]);
   assert.equal(shown.status, 0, shown.stderr);
-  assert.equal(JSON.parse(shown.stdout).accountId, BUNDLE.accountId);
+  assert.deepEqual(JSON.parse(shown.stdout), { source: 'file', configPath });
   assert.ok(!shown.stdout.includes(BUNDLE.apiKey));
   assert.ok(!shown.stdout.includes(BUNDLE.encryptionPhrase));
 });

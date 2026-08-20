@@ -9,7 +9,6 @@ import {
 import { PhoneHomeError } from '../../src/errors.js';
 import type { EncryptedEnvelope } from '../../src/types.js';
 
-const ACCOUNT_ID = 'firebase-user-one';
 const REQUEST_ID = '181cf811-13b2-402c-a863-32a2bd6e636a';
 const ENCRYPTION_PHRASE = 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8';
 const EXPECTED_KEY_CHECK = 'ZIQrtCQB-qrS6JtlDz07vKUNUiCTJURlQTzfn-vmLTI';
@@ -28,7 +27,7 @@ function encryptLocation(): EncryptedEnvelope {
     }),
   );
   const cipher = createCipheriv('aes-256-gcm', key, nonce);
-  cipher.setAAD(locationAdditionalAuthenticatedData(ACCOUNT_ID, REQUEST_ID));
+  cipher.setAAD(locationAdditionalAuthenticatedData(REQUEST_ID));
   const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final(), cipher.getAuthTag()]);
   return {
     version: 1,
@@ -43,7 +42,7 @@ test('derives the shared PhoneHome key-check vector', () => {
 });
 
 test('decrypts and validates a request-bound AES-256-GCM location', () => {
-  assert.deepEqual(decryptLocation(ENCRYPTION_PHRASE, ACCOUNT_ID, REQUEST_ID, encryptLocation()), {
+  assert.deepEqual(decryptLocation(ENCRYPTION_PHRASE, REQUEST_ID, encryptLocation()), {
     version: 1,
     latitude: 41.5868,
     longitude: -93.625,
@@ -56,12 +55,7 @@ test('decrypts and validates a request-bound AES-256-GCM location', () => {
 test('rejects an envelope replayed against a different request', () => {
   assert.throws(
     () =>
-      decryptLocation(
-        ENCRYPTION_PHRASE,
-        ACCOUNT_ID,
-        '181cf811-13b2-402c-a863-32a2bd6e636b',
-        encryptLocation(),
-      ),
+      decryptLocation(ENCRYPTION_PHRASE, '181cf811-13b2-402c-a863-32a2bd6e636b', encryptLocation()),
     (error: unknown) => error instanceof PhoneHomeError && error.code === 'decryption_failed',
   );
 });

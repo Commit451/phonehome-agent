@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createCipheriv } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import test from 'node:test';
-import { PhoneHomeClient } from '../../src/client.js';
+import { PHONE_HOME_API_BASE_URL, PhoneHomeClient } from '../../src/client.js';
 import { locationAdditionalAuthenticatedData } from '../../src/crypto.js';
 import { ApiError, PairingRequiredError } from '../../src/errors.js';
 import type { AgentSetupBundle, EncryptedEnvelope } from '../../src/types.js';
@@ -40,11 +40,11 @@ function json(response: ServerResponse, status: number, body: unknown): void {
   response.end(JSON.stringify(body));
 }
 
-function envelope(accountId: string, requestId: string): EncryptedEnvelope {
+function envelope(requestId: string): EncryptedEnvelope {
   const key = Buffer.from(ENCRYPTION_PHRASE, 'base64url');
   const nonce = Buffer.alloc(12, 7);
   const cipher = createCipheriv('aes-256-gcm', key, nonce);
-  cipher.setAAD(locationAdditionalAuthenticatedData(accountId, requestId));
+  cipher.setAAD(locationAdditionalAuthenticatedData(requestId));
   const plaintext = Buffer.from(
     JSON.stringify({
       version: 1,
@@ -64,20 +64,30 @@ function envelope(accountId: string, requestId: string): EncryptedEnvelope {
   };
 }
 
-function setup(baseUrl: string): AgentSetupBundle {
+function setup(): AgentSetupBundle {
   return {
-    version: 2,
-    apiBaseUrl: baseUrl,
-    accountId: 'firebase-user-one',
     apiKey: API_KEY,
     encryptionPhrase: ENCRYPTION_PHRASE,
   };
 }
 
+function clientFor(baseUrl: string): PhoneHomeClient {
+  const redirectedFetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const requested = new URL(
+      typeof input === 'string' ? input : input instanceof URL ? input : input.url,
+    );
+    assert.equal(requested.origin, PHONE_HOME_API_BASE_URL);
+    return fetch(`${baseUrl}${requested.pathname}${requested.search}`, init);
+  }) as typeof fetch;
+  return new PhoneHomeClient(setup(), { fetch: redirectedFetch });
+}
+
 test('requests, polls, authenticates, and decrypts a location', async (context) => {
   let polls = 0;
+  const requestedPaths: string[] = [];
   const server = await startServer((request, response) => {
     assert.equal(request.headers.authorization, `Bearer ${API_KEY}`);
+    requestedPaths.push(request.url ?? '');
     if (request.method === 'POST' && request.url?.endsWith('/check')) {
       json(response, 200, { matches: true });
       return;
@@ -97,7 +107,7 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
         requestId: REQUEST_ID,
         status: complete ? 'completed' : 'push_sent',
         receivedAtEpochMs: complete ? 1_700_000_000_100 : null,
-        encryptedLocation: complete ? envelope('firebase-user-one', REQUEST_ID) : null,
+        encryptedLocation: complete ? envelope(REQUEST_ID) : null,
       });
       return;
     }
@@ -105,7 +115,7 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
   });
   context.after(server.close);
 
-  const location = await new PhoneHomeClient(setup(server.baseUrl)).locate({
+  const location = await clientFor(server.baseUrl).locate({
     requestId: REQUEST_ID,
     timeoutMs: 2_000,
     pollIntervalMs: 5,
@@ -119,6 +129,12 @@ test('requests, polls, authenticates, and decrypts a location', async (context) 
     capturedAt: '2023-11-14T22:13:20.000Z',
     receivedAtEpochMs: 1_700_000_000_100,
   });
+  assert.deepEqual(requestedPaths, [
+    '/v1/account/check',
+    '/v1/account/location-requests',
+    `/v1/account/location-requests/${REQUEST_ID}`,
+    `/v1/account/location-requests/${REQUEST_ID}`,
+  ]);
 });
 
 test('parses status and encryption-check responses', async (context) => {
@@ -130,7 +146,7 @@ test('parses status and encryption-check responses', async (context) => {
     }
   });
   context.after(server.close);
-  const client = new PhoneHomeClient(setup(server.baseUrl));
+  const client = clientFor(server.baseUrl);
   assert.deepEqual(await client.status(), {
     deviceRegistered: true,
   });
@@ -155,7 +171,7 @@ test('stops before requesting location when the encryption pairing is stale', as
   context.after(server.close);
 
   await assert.rejects(
-    new PhoneHomeClient(setup(server.baseUrl)).createLocationRequest(REQUEST_ID),
+    clientFor(server.baseUrl).createLocationRequest(REQUEST_ID),
     (error: unknown) =>
       error instanceof PairingRequiredError &&
       error.code === 'pairing_required' &&
@@ -174,7 +190,7 @@ test('turns server pairing_required responses into actionable agent errors', asy
   context.after(server.close);
 
   await assert.rejects(
-    new PhoneHomeClient(setup(server.baseUrl)).status(),
+    clientFor(server.baseUrl).status(),
     (error: unknown) =>
       error instanceof PairingRequiredError &&
       error.code === 'pairing_required' &&
@@ -190,7 +206,7 @@ test('surfaces structured API errors without credentials', async (context) => {
     json(response, 403, { code: 'forbidden', message: 'Credential rejected.' });
   });
   context.after(server.close);
-  const client = new PhoneHomeClient(setup(server.baseUrl));
+  const client = clientFor(server.baseUrl);
 
   await assert.rejects(
     client.status(),

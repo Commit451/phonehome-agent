@@ -58,21 +58,19 @@ function loadEnvironment(environment: NodeJS.ProcessEnv): AgentSetupBundle | nul
   if (inline) return parseSetupBundleJson(inline);
 
   const values = {
-    apiBaseUrl: environment.PHONE_HOME_API_BASE_URL,
-    accountId: environment.PHONE_HOME_ACCOUNT_ID,
     apiKey: environment.PHONE_HOME_API_KEY,
     encryptionPhrase: environment.PHONE_HOME_ENCRYPTION_PHRASE,
   };
   const present = Object.values(values).filter((value) => value !== undefined).length;
   if (present === 0) return null;
-  if (present !== 4) {
+  if (present !== 2) {
     throw new PhoneHomeError(
       'invalid_config',
-      'Set all four PHONE_HOME_API_BASE_URL, PHONE_HOME_ACCOUNT_ID, PHONE_HOME_API_KEY, and PHONE_HOME_ENCRYPTION_PHRASE variables.',
+      'Set both PHONE_HOME_API_KEY and PHONE_HOME_ENCRYPTION_PHRASE variables.',
       { exitCode: 1 },
     );
   }
-  return parseSetupBundle({ version: 2, ...values });
+  return parseSetupBundle(values);
 }
 
 export async function loadConfig(

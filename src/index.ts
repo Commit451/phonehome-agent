@@ -1,4 +1,4 @@
-export { PhoneHomeClient, type PhoneHomeClientOptions } from './client.js';
+export { PHONE_HOME_API_BASE_URL, PhoneHomeClient, type PhoneHomeClientOptions } from './client.js';
 export { defaultConfigPath, loadConfig, saveConfig, type LoadedConfig } from './config.js';
 export {
   decryptLocation,

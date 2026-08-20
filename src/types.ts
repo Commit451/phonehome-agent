@@ -1,7 +1,4 @@
 export interface AgentSetupBundle {
-  version: 2;
-  apiBaseUrl: string;
-  accountId: string;
   apiKey: string;
   encryptionPhrase: string;
 }

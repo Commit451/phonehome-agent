@@ -21,6 +21,8 @@ import {
   validateRequestId,
 } from './validation.js';
 
+export const PHONE_HOME_API_BASE_URL = 'https://phonehome-server-630958157452.us-central1.run.app';
+
 export interface PhoneHomeClientOptions {
   fetch?: typeof fetch;
   requestTimeoutMs?: number;
@@ -38,16 +40,13 @@ export class PhoneHomeClient {
   }
 
   async status(): Promise<AgentAccountStatusResponse> {
-    const response = expectRecord(
-      await this.#request(`/v1/accounts/${encodeURIComponent(this.#setup.accountId)}`),
-      'Account status',
-    );
+    const response = expectRecord(await this.#request('/v1/account'), 'Account status');
     return { deviceRegistered: expectBoolean(response, 'deviceRegistered') };
   }
 
   async checkEncryption(): Promise<EncryptionCheckResponse> {
     const response = expectRecord(
-      await this.#request(`/v1/accounts/${encodeURIComponent(this.#setup.accountId)}/check`, {
+      await this.#request('/v1/account/check', {
         method: 'POST',
         body: JSON.stringify({
           encryptionKeyCheck: deriveEncryptionKeyCheck(this.#setup.encryptionPhrase),
@@ -70,13 +69,10 @@ export class PhoneHomeClient {
     const normalizedRequestId = validateRequestId(requestId);
     await this.verifyPairing();
     const response = expectRecord(
-      await this.#request(
-        `/v1/accounts/${encodeURIComponent(this.#setup.accountId)}/location-requests`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ requestId: normalizedRequestId }),
-        },
-      ),
+      await this.#request('/v1/account/location-requests', {
+        method: 'POST',
+        body: JSON.stringify({ requestId: normalizedRequestId }),
+      }),
       'Location request',
     );
     const returnedRequestId = validateRequestId(expectString(response, 'requestId'));
@@ -94,7 +90,7 @@ export class PhoneHomeClient {
     const normalizedRequestId = validateRequestId(requestId);
     const response = expectRecord(
       await this.#request(
-        `/v1/accounts/${encodeURIComponent(this.#setup.accountId)}/location-requests/${encodeURIComponent(normalizedRequestId)}`,
+        `/v1/account/location-requests/${encodeURIComponent(normalizedRequestId)}`,
       ),
       'Location result',
     );
@@ -123,7 +119,6 @@ export class PhoneHomeClient {
     }
     const location = decryptLocation(
       this.#setup.encryptionPhrase,
-      this.#setup.accountId,
       result.requestId,
       result.encryptedLocation,
     );
@@ -191,7 +186,7 @@ export class PhoneHomeClient {
     timer.unref?.();
     let response: Response;
     try {
-      response = await this.#fetch(`${this.#setup.apiBaseUrl}${path}`, {
+      response = await this.#fetch(`${PHONE_HOME_API_BASE_URL}${path}`, {
         ...init,
         headers: {
           Accept: 'application/json',

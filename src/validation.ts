@@ -7,7 +7,6 @@ import type {
 } from './types.js';
 
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/u;
-const ACCOUNT_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/u;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const LOCATION_STATUSES = new Set<LocationRequestStatus>([
   'queued',
@@ -78,14 +77,6 @@ export function decodeCanonicalBase64Url(value: string, byteLength: number, labe
   return decoded;
 }
 
-export function validateAccountId(value: string): string {
-  const normalized = value.trim();
-  if (!ACCOUNT_ID_PATTERN.test(normalized)) {
-    throw new PhoneHomeError('invalid_config', 'accountId is malformed.');
-  }
-  return normalized;
-}
-
 export function validateRequestId(value: string): string {
   const normalized = value.trim().toLowerCase();
   if (!UUID_PATTERN.test(normalized)) {
@@ -94,45 +85,8 @@ export function validateRequestId(value: string): string {
   return normalized;
 }
 
-function validateApiBaseUrl(value: string): string {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch (error) {
-    throw new PhoneHomeError('invalid_config', 'apiBaseUrl must be an absolute URL.', {
-      cause: error,
-    });
-  }
-
-  if (url.username || url.password || url.search || url.hash) {
-    throw new PhoneHomeError(
-      'invalid_config',
-      'apiBaseUrl cannot contain credentials, a query, or a fragment.',
-    );
-  }
-
-  const localHttpHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
-  if (
-    url.protocol !== 'https:' &&
-    !(url.protocol === 'http:' && localHttpHosts.has(url.hostname))
-  ) {
-    throw new PhoneHomeError(
-      'invalid_config',
-      'apiBaseUrl must use HTTPS (HTTP is allowed only for loopback development).',
-    );
-  }
-
-  return url.toString().replace(/\/$/u, '');
-}
-
 export function parseSetupBundle(value: unknown): AgentSetupBundle {
   const record = expectRecord(value, 'Agent setup');
-  if (record.version !== 2) {
-    throw new PhoneHomeError('invalid_config', 'Agent setup version must be 2.');
-  }
-
-  const apiBaseUrl = validateApiBaseUrl(expectString(record, 'apiBaseUrl'));
-  const accountId = validateAccountId(expectString(record, 'accountId'));
   const apiKey = expectString(record, 'apiKey');
   const encryptionPhrase = expectString(record, 'encryptionPhrase');
 
@@ -141,7 +95,7 @@ export function parseSetupBundle(value: unknown): AgentSetupBundle {
   apiKeyBytes.fill(0);
   encryptionKeyBytes.fill(0);
 
-  return { version: 2, apiBaseUrl, accountId, apiKey, encryptionPhrase };
+  return { apiKey, encryptionPhrase };
 }
 
 export function parseSetupBundleJson(json: string): AgentSetupBundle {
