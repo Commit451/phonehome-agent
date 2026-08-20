@@ -238,18 +238,18 @@ function printError(error: unknown, compact: boolean): void {
   process.exitCode = 2;
 }
 
-const HELP = `phone-home-cli ${packageMetadata.version}
+const HELP = `phonehome ${packageMetadata.version}
 
 Get the user's current phone location as machine-readable JSON.
 
 Usage:
-  phone-home setup [bundle.json|-] [--config path]
-  phone-home config
-  phone-home status
-  phone-home check
-  phone-home location [--timeout seconds] [--poll-interval ms] [--request-id uuid]
-  phone-home request [--request-id uuid]
-  phone-home result <request-id>
+  phonehome setup [bundle.json|-] [--config path]
+  phonehome config
+  phonehome status
+  phonehome check
+  phonehome location [--timeout seconds] [--poll-interval ms] [--request-id uuid]
+  phonehome request [--request-id uuid]
+  phonehome result <request-id>
 
 Aliases:
   location: locate, get-location
@@ -261,7 +261,7 @@ Global options:
   -v, --version     Show version
 
 Configuration:
-  Pipe the setup bundle copied from the PhoneHome app to "phone-home setup".
+  Pipe the setup bundle copied from the PhoneHome app to "phonehome setup".
   Credentials can instead come from PHONE_HOME_SETUP_BUNDLE or both
   PHONE_HOME_API_KEY and PHONE_HOME_ENCRYPTION_PHRASE.
   PHONE_HOME_CONFIG changes the default file path.

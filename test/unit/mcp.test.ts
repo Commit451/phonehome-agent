@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -10,6 +11,11 @@ import { createPhoneHomeMcpServer, type PhoneHomeMcpClient } from '../../src/mcp
 import type { AgentLocation, LocationResultResponse } from '../../src/types.js';
 
 const PROJECT_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const PACKAGE_VERSION = (
+  JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
+    version: string;
+  }
+).version;
 const REQUEST_ID = '181cf811-13b2-402c-a863-32a2bd6e636a';
 const LOCATION: AgentLocation = {
   requestId: REQUEST_ID,
@@ -187,7 +193,7 @@ test('the MCP executable exposes help and version without starting stdio', () =>
     encoding: 'utf8',
   });
   assert.equal(version.status, 0, version.stderr);
-  assert.equal(version.stdout.trim(), '0.0.4');
+  assert.equal(version.stdout.trim(), PACKAGE_VERSION);
 
   const help = spawnSync(process.execPath, ['--import', 'tsx', 'src/mcp.ts', '--help'], {
     cwd: PROJECT_ROOT,

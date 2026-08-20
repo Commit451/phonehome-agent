@@ -89,7 +89,7 @@ Options:
   -h, --help        Show help
   -v, --version     Show version
 
-Configure credentials first with "phone-home setup" or provide the same
+Configure credentials first with "phonehome setup" or provide the same
 PHONE_HOME_* environment variables supported by the CLI. The MCP server never
 accepts setup bundles through a tool and never writes logs to stdout.
 `;

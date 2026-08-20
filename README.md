@@ -23,8 +23,8 @@ Your human has instructions on their PhoneHome app that they can paste to you th
 Confirm that the phone registration and encryption phrase are synchronized:
 
 ```bash
-phone-home status
-phone-home check
+phonehome status
+phonehome check
 ```
 
 No command prints the API key or encryption phrase.
@@ -32,12 +32,12 @@ No command prints the API key or encryption phrase.
 When the account is activated on a new phone, PhoneHome rotates the agent pairing. The
 old configuration then returns a structured `pairing_required` error instructing the agent
 to ask the user for the new pairing code. Copy the new agent setup from **PhoneHome >
-Setup**, then run `phone-home setup` again to replace the local configuration.
+Setup**, then run `phonehome setup` again to replace the local configuration.
 
 ## Get a location
 
 ```bash
-phone-home location --timeout 60
+phonehome location --timeout 60
 ```
 
 Successful output is machine-readable JSON:
@@ -56,19 +56,19 @@ Successful output is machine-readable JSON:
 
 An agent answering “What are some good Mexican restaurants near me right now?” can:
 
-1. run `phone-home location`;
+1. run `phonehome location`;
 2. pass `latitude` and `longitude` to a local-search or maps tool/MCP;
 3. use the current time and opening-hours data from that provider; and
 4. present nearby open options without the user having to explain where they are
 
 ## MCP server
 
-`phone-home-mcp` exposes PhoneHome directly to MCP clients over local stdio. It uses the same protected config file or `PHONE_HOME_*` environment variables as the CLI and never sends setup credentials through MCP. Configure the package once with `phone-home setup`, then add this server to the MCP client's configuration:
+`phone-home-mcp` exposes PhoneHome directly to MCP clients over local stdio. It uses the same protected config file or `PHONE_HOME_*` environment variables as the CLI and never sends setup credentials through MCP. Configure the package once with `phonehome setup`, then add this server to the MCP client's configuration:
 
 ```json
 {
   "mcpServers": {
-    "phone-home": {
+    "phonehome": {
       "command": "phone-home-mcp"
     }
   }
@@ -91,15 +91,15 @@ Use `phone_home_get_location` for normal requests. MCP clients with short tool-c
 
 ## Commands
 
-| Command                      | Purpose                                                               |
-| ---------------------------- | --------------------------------------------------------------------- |
-| `phone-home setup [file\|-]` | Validate and securely save an app setup bundle                        |
-| `phone-home config`          | Show non-secret active configuration metadata                         |
-| `phone-home status`          | Check whether the paired phone is registered                          |
-| `phone-home check`           | Verify the local encryption phrase against the server's one-way check |
-| `phone-home location`        | Request, poll, decrypt, validate, and return a location               |
-| `phone-home request`         | Start a request without waiting                                       |
-| `phone-home result <id>`     | Read a request; decrypt it automatically when complete                |
+| Command                     | Purpose                                                               |
+| --------------------------- | --------------------------------------------------------------------- |
+| `phonehome setup [file\|-]` | Validate and securely save an app setup bundle                        |
+| `phonehome config`          | Show non-secret active configuration metadata                         |
+| `phonehome status`          | Check whether the paired phone is registered                          |
+| `phonehome check`           | Verify the local encryption phrase against the server's one-way check |
+| `phonehome location`        | Request, poll, decrypt, validate, and return a location               |
+| `phonehome request`         | Start a request without waiting                                       |
+| `phonehome result <id>`     | Read a request; decrypt it automatically when complete                |
 
 `location`, `locate`, and `get-location` are aliases. Location options:
 
@@ -157,7 +157,7 @@ Code that embeds its own MCP transport can import the server factory from the de
 ```ts
 import { createPhoneHomeMcpServer } from '@commit451/phonehome/mcp';
 
-const server = createPhoneHomeMcpServer({ version: '0.0.4' });
+const server = createPhoneHomeMcpServer({ version: '0.0.5' });
 ```
 
 ## Security model

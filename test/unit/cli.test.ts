@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -7,6 +8,11 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const PROJECT_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const PACKAGE_VERSION = (
+  JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
+    version: string;
+  }
+).version;
 const BUNDLE = {
   apiKey: 'ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8',
   encryptionPhrase: 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8',
@@ -29,11 +35,11 @@ function run(arguments_: string[], input?: string) {
 test('prints version and command help', () => {
   const version = run(['--version']);
   assert.equal(version.status, 0);
-  assert.equal(version.stdout.trim(), '0.0.4');
+  assert.equal(version.stdout.trim(), PACKAGE_VERSION);
 
   const help = run(['--help']);
   assert.equal(help.status, 0);
-  assert.match(help.stdout, /phone-home location/);
+  assert.match(help.stdout, /phonehome location/);
   assert.equal(help.stderr, '');
 });
 
