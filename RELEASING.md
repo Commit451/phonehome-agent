@@ -25,7 +25,7 @@ The workflow has `id-token: write`, runs on a GitHub-hosted runner, and intentio
 2. Update `package.json` and `package-lock.json` together:
 
    ```bash
-   npm version 0.0.2 --no-git-tag-version
+   npm version 0.0.3 --no-git-tag-version
    ```
 
 3. Verify and commit the release candidate:
@@ -34,15 +34,15 @@ The workflow has `id-token: write`, runs on a GitHub-hosted runner, and intentio
    npm run check
    npm pack --dry-run
    git add package.json package-lock.json dist
-   git commit -m "release: v0.0.2"
+   git commit -m "release: v0.0.3"
    git push origin main
    ```
 
 4. Tag that exact commit and push the tag:
 
    ```bash
-   git tag v0.0.2
-   git push origin v0.0.2
+   git tag v0.0.3
+   git push origin v0.0.3
    ```
 
 The publish workflow checks that the tag exactly matches `package.json`, installs a trusted-publishing-capable npm CLI, runs the complete project checks, verifies committed `dist/`, inspects the package contents, publishes an absent `@commit451/phonehome` version publicly with provenance, and creates the matching GitHub release. Rerunning a completed version is safe because npm versions are immutable and the workflow skips versions already present in the registry.

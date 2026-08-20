@@ -1,6 +1,6 @@
 {
   "name": "@commit451/phonehome",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Privacy-preserving PhoneHome location CLI and MCP server",
   "type": "module",
   "bin": {

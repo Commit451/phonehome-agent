@@ -189,7 +189,7 @@ Code that embeds its own MCP transport can import the server factory from the de
 ```ts
 import { createPhoneHomeMcpServer } from '@commit451/phonehome/mcp';
 
-const server = createPhoneHomeMcpServer({ version: '0.0.1' });
+const server = createPhoneHomeMcpServer({ version: '0.0.2' });
 ```
 
 ## Security model
